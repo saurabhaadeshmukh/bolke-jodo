@@ -196,7 +196,7 @@
       r.continuous = true;
       r.interimResults = true;
       r.lang = 'en-IN';
-      r.maxAlternatives = 3;
+      r.maxAlternatives = 5;
 
       r.onstart = () => {
         errCount = 0; isListening = true;
@@ -209,7 +209,7 @@
       r.onend = () => {
         if (isListening) {
           clearTimeout(restartTimer);
-          restartTimer = setTimeout(() => { if (isListening) try { r.start(); } catch(e){} }, 150);
+          restartTimer = setTimeout(() => { if (isListening) try { r.start(); } catch(e){} }, 50);
         } else {
           $('micBtn').classList.remove('listening');
           $('micStatus').textContent = 'Tap to Start';
@@ -264,7 +264,13 @@
       $('heardText').textContent = '"' + text + '"';
       $('heardText').classList.add('flash');
       const c = text.replace(/[^a-z0-9 ]/g, '').trim();
-      if (c.includes('total up') || c.includes('totalup') || c === 'total') {
+
+      // Robust "Total Up" detection — catches mishearing variants
+      if (
+        c.includes('total up') || c.includes('totalup') || c.includes('total op') ||
+        c.includes('total cup') || c.includes('tota lup') || c.includes('totallup') ||
+        c === 'total' || c === 'total up' || c.endsWith('total up') || c.startsWith('total up')
+      ) {
         entries.length > 0 ? showFinalTotal() : showToast('No entries yet!');
         return;
       }
@@ -279,8 +285,42 @@
         'sixty':60,'seventy':70,'eighty':80,'ninety':90,'hundred':100
       };
       const results = [];
+
+      // ── INDIAN HALF FRACTIONS ──
+      // Handles: "9 and a half", "9 and half", "nine and half", "nine and a half"
+      // Also: "half" alone = 0.5, "one and half" = 1.5
+      const halfPattern = /(\d+(?:\.\d+)?)\s+and\s+(?:a\s+)?half/gi;
+      const halfPatternWords = /\b(zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred)\s+and\s+(?:a\s+)?half\b/gi;
+
+      let halfMatch;
+      // Digit + "and half"
+      const halfCopy = text;
+      while ((halfMatch = halfPattern.exec(halfCopy)) !== null) {
+        results.push(parseFloat(halfMatch[1]) + 0.5);
+      }
+      if (results.length) return results;
+
+      // Word + "and half" (e.g. "nine and half")
+      while ((halfMatch = halfPatternWords.exec(text)) !== null) {
+        const base = wm[halfMatch[1].toLowerCase()];
+        if (base !== undefined) results.push(base + 0.5);
+      }
+      if (results.length) return results;
+
+      // Standalone "half"
+      if (/\bhalf\b/i.test(text) && !/and\s+(?:a\s+)?half/i.test(text)) {
+        results.push(0.5);
+        return results;
+      }
+
+      // ── NUMERIC DIGITS ──
       const dm = text.match(/\b\d+(\.\d+)?\b/g);
-      if (dm) { dm.forEach(m => { const n = parseFloat(m); if (!isNaN(n) && n >= 0 && n <= 99999) results.push(n); }); if (results.length) return results; }
+      if (dm) {
+        dm.forEach(m => { const n = parseFloat(m); if (!isNaN(n) && n >= 0 && n <= 99999) results.push(n); });
+        if (results.length) return results;
+      }
+
+      // ── WORD NUMBERS ──
       const words = text.split(/\s+/);
       let cur = 0, found = false;
       for (const w of words) {
