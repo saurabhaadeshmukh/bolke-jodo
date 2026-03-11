@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Bol Ke Jodo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Teko:wght@400;500;600;700&family=Barlow+Condensed:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --black: #0a0a0a; --black2: #111111; --black3: #1a1a1a;
+      --green: #00ff6a; --green-dim: #00cc55; --green-dark: #003d1a;
+      --green-glow: rgba(0,255,106,0.3); --white: #f0f0f0;
+      --grey: #888; --red: #ff3b3b; --orange: #ff6b35;
+    }
+    html, body {
+      height: 100%; background: var(--black); color: var(--white);
+      font-family: 'Barlow Condensed', sans-serif;
+      overflow: hidden; -webkit-tap-highlight-color: transparent;
+      user-select: none; touch-action: manipulation;
+    }
+    body { display: flex; flex-direction: column; align-items: center; min-height: 100vh; min-height: -webkit-fill-available; }
+
+    /* HTTPS WARNING */
+    #httpsWarning {
+      display: none; position: fixed; inset: 0; background: var(--black);
+      z-index: 9999; flex-direction: column; align-items: center;
+      justify-content: center; padding: 32px 28px; text-align: center;
+      overflow-y: auto;
+    }
+    #httpsWarning .wi { font-size: 3rem; margin-bottom: 14px; }
+    #httpsWarning h2 { font-family: 'Teko', sans-serif; font-size: 2rem; color: var(--orange); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 12px; }
+    #httpsWarning p { font-family: 'Rajdhani', sans-serif; font-size: 1rem; color: #aaa; line-height: 1.7; margin-bottom: 8px; }
+    .wbox { background: #161616; border: 1px solid #2a2a2a; border-radius: 10px; padding: 16px 18px; margin: 12px 0; text-align: left; }
+    .wbox p { font-size: 0.9rem; color: #bbb; margin-bottom: 8px; }
+    .wbox p:last-child { margin-bottom: 0; }
+    .sn { display: inline-flex; align-items: center; justify-content: center; background: var(--green-dark); color: var(--green); font-family: 'Teko', sans-serif; font-weight: 700; width: 22px; height: 22px; border-radius: 50%; font-size: 0.9rem; margin-right: 8px; flex-shrink: 0; }
+    .uc { display: inline-block; background: #0d2b1a; color: var(--green); font-family: 'Rajdhani', sans-serif; font-size: 0.82rem; padding: 3px 12px; border-radius: 20px; border: 1px solid var(--green-dark); margin: 4px 0; }
+
+    /* HEADER */
+    header { width: 100%; padding: 16px 24px 10px; display: flex; flex-direction: column; align-items: center; border-bottom: 1px solid #1f1f1f; background: var(--black2); }
+    .app-title { font-family: 'Teko', sans-serif; font-size: 2.6rem; font-weight: 700; letter-spacing: 4px; color: var(--green); text-transform: uppercase; line-height: 1; text-shadow: 0 0 20px var(--green-glow); }
+    .app-tagline { font-family: 'Rajdhani', sans-serif; font-size: 0.72rem; letter-spacing: 3px; color: var(--grey); text-transform: uppercase; margin-top: 2px; }
+    .app-version { font-family: 'Rajdhani', sans-serif; font-size: 0.62rem; letter-spacing: 2px; color: #2e2e2e; margin-top: 4px; }
+    .app-version span { color: #3a3a3a; font-weight: 600; }
+
+    /* ERROR BANNER */
+    .error-banner { display: none; width: 100%; background: rgba(255,59,59,0.1); border-bottom: 1px solid rgba(255,59,59,0.25); padding: 7px 16px; text-align: center; }
+    .error-banner p { font-family: 'Rajdhani', sans-serif; font-size: 0.75rem; color: #ff8080; letter-spacing: 0.5px; }
+
+    /* TOTAL */
+    .total-section { width: 100%; padding: 14px 24px 12px; background: var(--black2); display: flex; flex-direction: column; align-items: center; border-bottom: 2px solid var(--green-dark); position: relative; overflow: hidden; }
+    .total-section::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--green), transparent); animation: scan 3s ease-in-out infinite; }
+    @keyframes scan { 0%,100%{opacity:.3;transform:scaleX(.4)} 50%{opacity:1;transform:scaleX(1)} }
+    .total-label { font-family: 'Rajdhani', sans-serif; font-size: 0.68rem; letter-spacing: 4px; color: var(--grey); text-transform: uppercase; margin-bottom: 2px; }
+    .total-value { font-family: 'Teko', sans-serif; font-size: 5rem; font-weight: 600; color: var(--green); line-height: 1; letter-spacing: 2px; text-shadow: 0 0 30px var(--green-glow); }
+    .total-value.pulse { animation: tp .35s ease; }
+    @keyframes tp { 0%{transform:scale(1)} 40%{transform:scale(1.1)} 100%{transform:scale(1)} }
+    .entry-count { font-family: 'Rajdhani', sans-serif; font-size: 0.72rem; letter-spacing: 2px; color: #444; margin-top: 2px; }
+    .entry-count span { color: var(--green-dim); font-weight: 600; }
+
+    /* MIC */
+    .mic-section { width: 100%; display: flex; flex-direction: column; align-items: center; padding: 14px 24px 8px; gap: 7px; }
+    .mic-btn { width: 96px; height: 96px; border-radius: 50%; border: 3px solid var(--green); background: var(--black3); display: flex; align-items: center; justify-content: center; cursor: pointer; -webkit-appearance: none; outline: none; transition: transform .15s; }
+    .mic-btn:active { transform: scale(0.93); }
+    .mic-btn.listening { background: var(--green-dark); animation: mp 1.4s ease-in-out infinite; }
+    @keyframes mp { 0%,100%{box-shadow:0 0 0 6px rgba(0,255,106,.1),0 0 20px var(--green-glow)} 50%{box-shadow:0 0 0 16px rgba(0,255,106,.05),0 0 50px rgba(0,255,106,.35)} }
+    .mic-icon { width: 38px; height: 38px; fill: var(--green); }
+    .mic-btn.listening .mic-icon { filter: drop-shadow(0 0 6px var(--green)); }
+    .mic-status { font-family: 'Rajdhani', sans-serif; font-size: 0.8rem; letter-spacing: 3px; text-transform: uppercase; color: var(--grey); }
+    .mic-status.active { color: var(--green); animation: blink 1s step-end infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.35} }
+    .heard-text { font-family: 'Rajdhani', sans-serif; font-size: 0.95rem; color: #555; min-height: 20px; font-style: italic; text-align: center; padding: 0 16px; }
+    .heard-text.flash { animation: hf .6s ease forwards; }
+    @keyframes hf { 0%{color:var(--green)} 100%{color:#555} }
+    .keyword-hint { font-family: 'Rajdhani', sans-serif; font-size: 0.68rem; letter-spacing: 2px; color: #2a2a2a; text-align: center; text-transform: uppercase; }
+    .keyword-hint strong { color: #444; }
+
+    /* ENTRIES */
+    .entries-section { width: 100%; flex: 1; overflow-y: auto; padding: 0 14px 10px; -webkit-overflow-scrolling: touch; }
+    .entries-header { font-family: 'Rajdhani', sans-serif; font-size: 0.66rem; letter-spacing: 4px; color: #2a2a2a; text-transform: uppercase; padding: 8px 8px 5px; border-bottom: 1px solid #161616; margin-bottom: 5px; }
+    .entries-list { display: flex; flex-direction: column; gap: 5px; }
+    .entry-item { display: flex; align-items: center; justify-content: space-between; padding: 9px 12px; background: var(--black3); border-left: 3px solid var(--green-dark); border-radius: 0 6px 6px 0; animation: si .22s ease; }
+    .entry-item:first-child { border-left-color: var(--green); }
+    @keyframes si { from{opacity:0;transform:translateX(-12px)} to{opacity:1;transform:translateX(0)} }
+    .entry-num { font-family: 'Rajdhani', sans-serif; font-size: 0.66rem; color: #333; width: 20px; }
+    .entry-val { font-family: 'Teko', sans-serif; font-size: 1.5rem; color: var(--white); font-weight: 500; flex: 1; padding-left: 10px; }
+    .entry-running { font-family: 'Rajdhani', sans-serif; font-size: 0.72rem; color: #444; letter-spacing: 1px; }
+    .empty-state { text-align: center; padding: 20px; color: #2a2a2a; }
+    .empty-state .ei { font-size: 2rem; margin-bottom: 8px; opacity: .5; }
+    .empty-state p { font-family: 'Rajdhani', sans-serif; font-size: 0.8rem; letter-spacing: 2px; text-transform: uppercase; line-height: 1.9; }
+
+    /* CONTROLS */
+    .controls { width: 100%; display: flex; gap: 10px; padding: 10px 14px 16px; border-top: 1px solid #181818; background: var(--black2); }
+    .ctrl-btn { flex: 1; padding: 11px 8px; border-radius: 8px; border: 1px solid #222; background: var(--black3); color: var(--grey); font-family: 'Rajdhani', sans-serif; font-size: 0.8rem; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; -webkit-appearance: none; outline: none; transition: transform .15s; }
+    .ctrl-btn:active { transform: scale(0.95); }
+    .ctrl-btn.undo:not(:disabled):active { border-color: var(--orange); color: var(--orange); background: rgba(255,107,53,.08); }
+    .ctrl-btn.reset:not(:disabled):active { border-color: var(--red); color: var(--red); background: rgba(255,59,59,.08); }
+    .ctrl-btn:disabled { opacity: .22; pointer-events: none; }
+
+    /* TOAST */
+    .toast { position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%) scale(.85); background: var(--green); color: var(--black); font-family: 'Teko', sans-serif; font-size: 1.4rem; font-weight: 700; letter-spacing: 3px; padding: 13px 26px; border-radius: 10px; opacity: 0; pointer-events: none; transition: all .2s ease; z-index: 500; text-transform: uppercase; white-space: nowrap; }
+    .toast.show { opacity: 1; transform: translate(-50%,-50%) scale(1); }
+
+    /* FINAL OVERLAY */
+    .final-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.94); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 200; opacity: 0; pointer-events: none; transition: opacity .3s ease; padding: 40px; }
+    .final-overlay.show { opacity: 1; pointer-events: all; }
+    .final-label { font-family: 'Rajdhani', sans-serif; font-size: 0.8rem; letter-spacing: 6px; color: var(--grey); text-transform: uppercase; margin-bottom: 6px; }
+    .final-total { font-family: 'Teko', sans-serif; font-size: clamp(5rem,24vw,10rem); font-weight: 700; color: var(--green); line-height: 1; text-shadow: 0 0 60px var(--green-glow); animation: fp .45s cubic-bezier(.34,1.56,.64,1) forwards; }
+    @keyframes fp { from{transform:scale(.5);opacity:0} to{transform:scale(1);opacity:1} }
+    .final-entries { font-family: 'Rajdhani', sans-serif; font-size: 0.8rem; color: #555; letter-spacing: 2px; margin-top: 8px; }
+    .final-btns { display: flex; gap: 12px; margin-top: 34px; }
+    .final-btn { padding: 12px 26px; border-radius: 50px; font-family: 'Rajdhani', sans-serif; font-size: 0.88rem; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; cursor: pointer; -webkit-appearance: none; outline: none; transition: all .2s; }
+    .final-btn.continue { border: 2px solid var(--green); background: transparent; color: var(--green); }
+    .final-btn.continue:active { background: var(--green); color: var(--black); }
+    .final-btn.newbook { border: 2px solid #2a2a2a; background: transparent; color: #555; }
+    .final-btn.newbook:active { background: #1a1a1a; }
+
+    .entries-section::-webkit-scrollbar { width: 3px; }
+    .entries-section::-webkit-scrollbar-thumb { background: #1e1e1e; border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+  <!-- LOCAL FILE WARNING -->
+  <div id="httpsWarning">
+    <div class="wi">⚠️</div>
+    <h2>Microphone Blocked</h2>
+    <p>Chrome blocks mic access when a file is opened directly from your computer. This is a Chrome security rule — not a bug in the app.</p>
+    <div class="wbox">
+      <p><span class="sn">1</span> The app works perfectly once hosted online over <strong>https://</strong></p>
+      <p style="margin-top:10px"><span class="sn">2</span> Upload <strong>bolkejodo.html</strong> to GitHub and rename it <strong>index.html</strong></p>
+      <p style="margin-top:10px"><span class="sn">3</span> Enable GitHub Pages — your link will be:</p>
+      <div style="text-align:center;margin-top:8px"><span class="uc">yourusername.github.io/bolkejodo</span></div>
+      <p style="margin-top:10px;color:#555">Anyone opening that link in Chrome on Android or iPhone will have full mic access ✅</p>
+    </div>
+    <p style="font-size:0.78rem;color:#3a3a3a;margin-top:6px">Share with colleagues only after hosting it online.</p>
+  </div>
+
+  <!-- APP -->
+  <header>
+    <div class="app-title">Bol Ke Jodo</div>
+    <div class="app-tagline">बोल के जोड़ो · Speak &amp; Sum</div>
+    <div class="app-version">v<span>1.3.1</span> · interim processing · faster mic · half fractions</div>
+  </header>
+
+  <div class="error-banner" id="errorBanner"><p id="errorMsg"></p></div>
+
+  <div class="total-section">
+    <div class="total-label">Running Total</div>
+    <div class="total-value" id="totalDisplay">0</div>
+    <div class="entry-count">Entries: <span id="entryCount">0</span></div>
+  </div>
+
+  <div class="mic-section">
+    <button class="mic-btn" id="micBtn" onclick="toggleListening()">
+      <svg class="mic-icon" viewBox="0 0 24 24"><path d="M12 1a4 4 0 0 1 4 4v6a4 4 0 0 1-8 0V5a4 4 0 0 1 4-4zm0 2a2 2 0 0 0-2 2v6a2 2 0 0 0 4 0V5a2 2 0 0 0-2-2zm-7 8a1 1 0 0 1 1 1 6 6 0 0 0 12 0 1 1 0 1 1 2 0 8 8 0 0 1-7 7.938V21h3a1 1 0 1 1 0 2H8a1 1 0 1 1 0-2h3v-2.062A8 8 0 0 1 4 12a1 1 0 0 1 1-1z"/></svg>
+    </button>
+    <div class="mic-status" id="micStatus">Tap to Start</div>
+    <div class="heard-text" id="heardText">—</div>
+    <div class="keyword-hint">Say <strong>"Total Up"</strong> for grand total</div>
+  </div>
+
+  <div class="entries-section">
+    <div class="entries-header">Entries Log</div>
+    <div class="entries-list" id="entriesList"></div>
+  </div>
+
+  <div class="controls">
+    <button class="ctrl-btn undo" id="undoBtn" onclick="undoLast()" disabled>↩ Undo Last</button>
+    <button class="ctrl-btn reset" id="resetBtn" onclick="resetAll()" disabled>✕ Reset All</button>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <div class="final-overlay" id="finalOverlay">
+    <div class="final-label">Grand Total</div>
+    <div class="final-total" id="finalTotal">0</div>
+    <div class="final-entries" id="finalEntries"></div>
+    <div class="final-btns">
+      <button class="final-btn continue" onclick="closeFinal()">+ Add More</button>
+      <button class="final-btn newbook" onclick="resetAndClose()">New Book</button>
+    </div>
+  </div>
+
+  <script>
+    if (window.location.protocol === 'file:') {
+      document.getElementById('httpsWarning').style.display = 'flex';
+    }
+
+    let entries = [], runningTotal = 0, recognition = null;
+    let isListening = false, restartTimer = null, errCount = 0;
+    let lastInterimText = '', interimFired = false, lastFiredText = '';
+    const $ = id => document.getElementById(id);
+
+    function setupRecognition() {
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SR) { showError('Voice not supported. Please use Chrome browser.'); return null; }
+      const r = new SR();
+      r.continuous = true;
+      r.interimResults = true;
+      r.lang = 'en-IN';
+      r.maxAlternatives = 2;
+
+      r.onstart = () => {
+        errCount = 0; isListening = true;
+        $('micBtn').classList.add('listening');
+        $('micStatus').textContent = 'Listening...';
+        $('micStatus').classList.add('active');
+        hideError();
+      };
+
+      r.onend = () => {
+        if (isListening) {
+          clearTimeout(restartTimer);
+          restartTimer = setTimeout(() => { if (isListening) try { r.start(); } catch(e){} }, 50);
+        } else {
+          $('micBtn').classList.remove('listening');
+          $('micStatus').textContent = 'Tap to Start';
+          $('micStatus').classList.remove('active');
+          $('heardText').textContent = '—';
+        }
+      };
+
+      r.onerror = e => {
+        if (e.error === 'no-speech' || e.error === 'aborted') return;
+        if (e.error === 'not-allowed') {
+          isListening = false;
+          $('micBtn').classList.remove('listening');
+          $('micStatus').textContent = 'Tap to Start';
+          $('micStatus').classList.remove('active');
+          showError('Mic access denied. Allow microphone in Chrome settings and try again.');
+          return;
+        }
+        errCount++;
+        if (errCount < 6 && isListening) {
+          restartTimer = setTimeout(() => { try { r.start(); } catch(e){} }, 400);
+        } else {
+          isListening = false;
+          $('micBtn').classList.remove('listening');
+          $('micStatus').textContent = 'Tap to Restart';
+          $('micStatus').classList.remove('active');
+          showError('Mic stopped. Tap button to restart.');
+          errCount = 0;
+        }
+      };
+
+      r.onresult = event => {
+        let interim = '', final = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const res = event.results[i];
+          let best = res[0].transcript.trim().toLowerCase();
+          if (res.isFinal) {
+            // On final: only process if interim didn't already fire for this text
+            for (let j = 0; j < res.length; j++) {
+              const alt = res[j].transcript.trim().toLowerCase();
+              if (extractNumbers(alt).length > 0) { best = alt; break; }
+            }
+            final += best + ' ';
+          } else {
+            // INTERIM: show instantly on screen
+            interim = best;
+            $('heardText').textContent = '🎙 ' + interim;
+            $('heardText').classList.remove('flash');
+
+            // KEY FIX: if interim clearly contains a number and we haven't
+            // fired for this phrase yet — act immediately, don't wait for final
+            const interimNums = extractNumbers(interim);
+            const isNewPhrase = interim !== lastInterimText;
+            lastInterimText = interim;
+
+            if (interimNums.length > 0 && isNewPhrase && !interimFired) {
+              // Only fire on interim if the number looks clean and complete
+              // (at least 1 digit spoken clearly, not mid-word)
+              const cleanInterim = interim.replace(/[^a-z0-9 .]/g, '').trim();
+              const isClearNumber = /^\d+(\.\d+)?$/.test(cleanInterim) ||
+                /^(zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred|half)$/.test(cleanInterim) ||
+                /^\d+\s+and\s+(a\s+)?half$/.test(cleanInterim);
+
+              if (isClearNumber && cleanInterim !== lastFiredText) {
+                interimFired = true;
+                lastFiredText = cleanInterim;
+                processTranscript(interim);
+              }
+            }
+          }
+        }
+
+        if (final.trim()) {
+          const finalText = final.trim();
+          // Check for total up in final regardless
+          const c = finalText.replace(/[^a-z0-9 ]/g, '').trim();
+          const isTotalUp = c.includes('total up') || c.includes('totalup') ||
+            c.includes('total op') || c.includes('total cup') || c === 'total';
+          if (isTotalUp) {
+            entries.length > 0 ? showFinalTotal() : showToast('No entries yet!');
+          } else if (!interimFired) {
+            // Interim didn't fire — process final as normal
+            processTranscript(finalText);
+          }
+          // Reset interim lock for next phrase
+          interimFired = false;
+          lastInterimText = '';
+        }
+      };
+      return r;
+    }
+
+    function processTranscript(text) {
+      $('heardText').textContent = '"' + text + '"';
+      $('heardText').classList.add('flash');
+      const c = text.replace(/[^a-z0-9 ]/g, '').trim();
+
+      // Robust "Total Up" detection — catches mishearing variants
+      if (
+        c.includes('total up') || c.includes('totalup') || c.includes('total op') ||
+        c.includes('total cup') || c.includes('tota lup') || c.includes('totallup') ||
+        c === 'total' || c === 'total up' || c.endsWith('total up') || c.startsWith('total up')
+      ) {
+        entries.length > 0 ? showFinalTotal() : showToast('No entries yet!');
+        return;
+      }
+      extractNumbers(text).forEach(n => addEntry(n));
+    }
+
+    function extractNumbers(text) {
+      const wm = {
+        'zero':0,'one':1,'two':2,'three':3,'four':4,'five':5,'six':6,'seven':7,'eight':8,'nine':9,'ten':10,
+        'eleven':11,'twelve':12,'thirteen':13,'fourteen':14,'fifteen':15,'sixteen':16,'seventeen':17,
+        'eighteen':18,'nineteen':19,'twenty':20,'thirty':30,'forty':40,'fifty':50,
+        'sixty':60,'seventy':70,'eighty':80,'ninety':90,'hundred':100
+      };
+      const results = [];
+
+      // ── INDIAN HALF FRACTIONS ──
+      // Handles: "9 and a half", "9 and half", "nine and half", "nine and a half"
+      // Also: "half" alone = 0.5, "one and half" = 1.5
+      const halfPattern = /(\d+(?:\.\d+)?)\s+and\s+(?:a\s+)?half/gi;
+      const halfPatternWords = /\b(zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred)\s+and\s+(?:a\s+)?half\b/gi;
+
+      let halfMatch;
+      // Digit + "and half"
+      const halfCopy = text;
+      while ((halfMatch = halfPattern.exec(halfCopy)) !== null) {
+        results.push(parseFloat(halfMatch[1]) + 0.5);
+      }
+      if (results.length) return results;
+
+      // Word + "and half" (e.g. "nine and half")
+      while ((halfMatch = halfPatternWords.exec(text)) !== null) {
+        const base = wm[halfMatch[1].toLowerCase()];
+        if (base !== undefined) results.push(base + 0.5);
+      }
+      if (results.length) return results;
+
+      // Standalone "half"
+      if (/\bhalf\b/i.test(text) && !/and\s+(?:a\s+)?half/i.test(text)) {
+        results.push(0.5);
+        return results;
+      }
+
+      // ── NUMERIC DIGITS ──
+      const dm = text.match(/\b\d+(\.\d+)?\b/g);
+      if (dm) {
+        dm.forEach(m => { const n = parseFloat(m); if (!isNaN(n) && n >= 0 && n <= 99999) results.push(n); });
+        if (results.length) return results;
+      }
+
+      // ── WORD NUMBERS ──
+      const words = text.split(/\s+/);
+      let cur = 0, found = false;
+      for (const w of words) {
+        if (wm[w] !== undefined) { if (w === 'hundred' && found) cur *= 100; else cur += wm[w]; found = true; }
+        else if (found) { results.push(cur); cur = 0; found = false; }
+      }
+      if (found && cur > 0) results.push(cur);
+      return results;
+    }
+
+    function addEntry(value) {
+      runningTotal = Math.round((runningTotal + value) * 100) / 100;
+      entries.push({ value, running: runningTotal });
+      const d = $('totalDisplay');
+      d.textContent = fmt(runningTotal);
+      d.classList.remove('pulse'); void d.offsetWidth; d.classList.add('pulse');
+      $('entryCount').textContent = entries.length;
+      $('undoBtn').disabled = false; $('resetBtn').disabled = false;
+      renderEntries();
+      if (navigator.vibrate) navigator.vibrate(40);
+    }
+
+    function renderEntries() {
+      const list = $('entriesList');
+      if (!entries.length) {
+        list.innerHTML = `<div class="empty-state"><div class="ei">🎙️</div><p>Tap the mic<br>speak your numbers<br>one by one</p></div>`;
+        return;
+      }
+      list.innerHTML = [...entries].reverse().map((e, ri) => {
+        const i = entries.length - 1 - ri;
+        return `<div class="entry-item"><div class="entry-num">${i+1}</div><div class="entry-val">+ ${fmt(e.value)}</div><div class="entry-running">= ${fmt(e.running)}</div></div>`;
+      }).join('');
+    }
+
+    function showFinalTotal() {
+      stopListening();
+      $('finalTotal').textContent = fmt(runningTotal);
+      $('finalEntries').textContent = entries.length + (entries.length === 1 ? ' entry' : ' entries') + ' added';
+      $('finalOverlay').classList.add('show');
+      if (navigator.vibrate) navigator.vibrate([80,60,80,60,180]);
+    }
+
+    function closeFinal() { $('finalOverlay').classList.remove('show'); }
+    function resetAndClose() { closeFinal(); setTimeout(resetAll, 200); }
+
+    function toggleListening() { isListening ? stopListening() : startListening(); }
+
+    function startListening() {
+      if (!recognition) recognition = setupRecognition();
+      if (!recognition) return;
+      clearTimeout(restartTimer); errCount = 0; isListening = true;
+      try { recognition.start(); } catch(e) {}
+    }
+
+    function stopListening() {
+      isListening = false; clearTimeout(restartTimer);
+      if (recognition) try { recognition.stop(); } catch(e) {}
+      $('micBtn').classList.remove('listening');
+      $('micStatus').textContent = 'Tap to Start';
+      $('micStatus').classList.remove('active');
+      $('heardText').textContent = '—';
+    }
+
+    function undoLast() {
+      if (!entries.length) return;
+      const last = entries.pop();
+      runningTotal = Math.round((runningTotal - last.value) * 100) / 100;
+      $('totalDisplay').textContent = fmt(runningTotal);
+      $('entryCount').textContent = entries.length;
+      if (!entries.length) { $('undoBtn').disabled = true; $('resetBtn').disabled = true; }
+      renderEntries(); showToast('Removed ' + fmt(last.value));
+    }
+
+    function resetAll() {
+      entries = []; runningTotal = 0;
+      $('totalDisplay').textContent = '0'; $('entryCount').textContent = '0';
+      $('undoBtn').disabled = true; $('resetBtn').disabled = true;
+      renderEntries(); showToast('Reset Done');
+    }
+
+    function showToast(msg) {
+      const t = $('toast'); t.textContent = msg;
+      t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 1600);
+    }
+
+    function showError(msg) { $('errorMsg').textContent = msg; $('errorBanner').style.display = 'block'; }
+    function hideError() { $('errorBanner').style.display = 'none'; }
+    function fmt(n) { return Number.isInteger(n) ? n.toLocaleString('en-IN') : parseFloat(n.toFixed(2)).toLocaleString('en-IN'); }
+
+    renderEntries();
+  </script>
+</body>
+</html>
