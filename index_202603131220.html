@@ -480,14 +480,8 @@ class SarvamRecorder {
   startChunk(){
     if(!this.stream||!this.active) return;
     this.chunks=[]; this.speechDetected=false; this.speechStartTime=null;
-    // Pick best format Sarvam supports — prefer ogg/opus, fallback to webm
-    const mime = MediaRecorder.isTypeSupported('audio/ogg;codecs=opus') ? 'audio/ogg;codecs=opus'
-               : MediaRecorder.isTypeSupported('audio/webm;codecs=opus') ? 'audio/webm;codecs=opus'
-               : MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm'
-               : '';
-    this.mediaRecorder = mime
-      ? new MediaRecorder(this.stream, {mimeType: mime})
-      : new MediaRecorder(this.stream);
+    const mime=MediaRecorder.isTypeSupported('audio/webm;codecs=opus')?'audio/webm;codecs=opus':'audio/webm';
+    this.mediaRecorder=new MediaRecorder(this.stream,{mimeType:mime});
     this.mediaRecorder.ondataavailable=e=>{if(e.data?.size>0)this.chunks.push(e.data);};
     this.mediaRecorder.start(100);
   }
@@ -522,7 +516,7 @@ class SarvamRecorder {
       const base64=await this.blobToBase64(blob);
       const res=await fetch('/.netlify/functions/sarvam',{
         method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({audio:base64,mimeType:mime})
+        body:JSON.stringify({audio:base64,mimeType:mime.split(';')[0]})
       });
       const data=await res.json();
       this.onStatus('listening','🎤 Listening…');

@@ -39,10 +39,8 @@ exports.handler = async function(event) {
 
     const audioBuffer = Buffer.from(audio, 'base64');
     const audioType = mimeType || 'audio/webm';
-    // Use base type for filename, full type for Content-Type header
-    const baseType = audioType.split(';')[0].trim();
-    const filename = baseType.includes('wav') ? 'recording.wav'
-                   : baseType.includes('ogg') ? 'recording.ogg'
+    const filename = audioType.includes('wav') ? 'recording.wav'
+                   : audioType.includes('ogg') ? 'recording.ogg'
                    : 'recording.webm';
 
     console.log('Sending to Sarvam:', filename, audioBuffer.length, 'bytes');
@@ -50,7 +48,7 @@ exports.handler = async function(event) {
     const boundary = '----SarvamBoundary' + Date.now().toString(36);
 
     const bodyParts = [
-      Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="${filename}"\r\nContent-Type: ${baseType}\r\n\r\n`),
+      Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="${filename}"\r\nContent-Type: ${audioType}\r\n\r\n`),
       audioBuffer,
       Buffer.from(`\r\n--${boundary}\r\nContent-Disposition: form-data; name="model"\r\n\r\nsaaras:v3\r\n`),
       Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="language_code"\r\n\r\nhi-IN\r\n`),
