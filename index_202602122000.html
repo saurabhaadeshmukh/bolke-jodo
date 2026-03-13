@@ -520,18 +520,9 @@ class SarvamRecorder {
       });
       const data=await res.json();
       this.onStatus('listening','🎤 Listening…');
-      if(data.transcript?.trim()){
-        this.onTranscript(data.transcript.trim());
-      } else if(data.error){
-        this.onError('Sarvam error: '+data.error+(data.details?' — '+data.details:''));
-      } else if(data.debug){
-        this.onError('Debug: '+data.debug);
-      } else {
-        // Show raw response for debugging
-        this.onError('No transcript. Raw: '+JSON.stringify(data).substring(0,120));
-      }
+      if(data.transcript?.trim()) this.onTranscript(data.transcript.trim());
     } catch(err){
-      this.onError('Fetch error: '+err.message);
+      this.onError('Sarvam connection error. Check internet.');
       this.onStatus('listening','🎤 Listening…');
     }
   }
